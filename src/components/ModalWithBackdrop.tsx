@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {
   Modal,
-  Animated,
   useWindowDimensions,
   StyleSheet,
   TouchableOpacity,
@@ -11,6 +10,12 @@ import {
 import { KeyboardContext } from '../contexts/KeyboardContext'
 import { useTimeout } from '../hooks/useTimeout'
 import { IsSafeAreaWrapper } from './ConditionalContainer'
+import Reanimated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated'
 
 type ModalWithBackdropProps = {
   isOpen: boolean
@@ -25,24 +30,26 @@ export const ModalWithBackdrop = ({
   ...rest
 }: ModalWithBackdropProps & ModalProps) => {
   const { height: screenHeight } = useWindowDimensions()
-  const translateY = React.useRef(new Animated.Value(screenHeight)).current
+  const _translateY = useSharedValue(screenHeight)
   const { backdropColor, disableSafeArea } = React.useContext(KeyboardContext)
   const handleTimeout = useTimeout()
 
   React.useEffect(() => {
-    Animated.spring(translateY, {
-      toValue: isOpen ? 0 : screenHeight,
-      useNativeDriver: true,
-    }).start()
-  }, [isOpen, screenHeight, translateY])
+    _translateY.value = withDelay(100, withTiming(isOpen ? 0 : screenHeight, { duration: 300 }))
+  }, [_translateY, isOpen, screenHeight])
 
   const handleClose = () => {
-    Animated.spring(translateY, {
-      toValue: screenHeight,
-      useNativeDriver: true,
-    }).start()
+    _translateY.value = withTiming(screenHeight, { duration: 200 })
     handleTimeout(() => backdropPress(), 200)
   }
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateY: _translateY.value,
+      },
+    ],
+  }))
 
   return (
     <Modal visible={isOpen} animationType="fade" transparent={true} {...rest}>
@@ -50,12 +57,7 @@ export const ModalWithBackdrop = ({
         <View style={[styles.modalContainer, { backgroundColor: backdropColor }]}>
           <IsSafeAreaWrapper style={styles.modalContainer} isSafeArea={!disableSafeArea}>
             <TouchableOpacity activeOpacity={1}>
-              <Animated.View
-                style={{
-                  transform: [{ translateY }],
-                }}>
-                {children}
-              </Animated.View>
+              <Reanimated.View style={[animatedStyle]}>{children}</Reanimated.View>
             </TouchableOpacity>
           </IsSafeAreaWrapper>
         </View>

@@ -6,6 +6,8 @@ import { SingleEmoji } from './SingleEmoji'
 import { KeyboardContext } from '../contexts/KeyboardContext'
 import { useKeyboardStore } from '../store/useKeyboardStore'
 import { parseEmoji } from '../utils'
+import { memo, useCallback, useMemo } from 'react'
+import _ from 'lodash'
 
 const emptyEmoji: JsonEmoji = {
   emoji: '',
@@ -13,7 +15,7 @@ const emptyEmoji: JsonEmoji = {
   v: '0',
 }
 
-export const EmojiCategory = ({ item: { title, data } }: { item: EmojisByCategory }) => {
+export const EmojiCategory = memo(({ item: { title, data } }: { item: EmojisByCategory }) => {
   const {
     onEmojiSelected,
     emojiSize,
@@ -38,11 +40,14 @@ export const EmojiCategory = ({ item: { title, data } }: { item: EmojisByCategor
     }
   }, [numberOfColumns, data])
 
-  const getItemLayout = (_: JsonEmoji[] | null | undefined, index: number) => ({
-    length: emojiSize ? emojiSize : 0,
-    offset: emojiSize * Math.ceil(index / numberOfColumns),
-    index,
-  })
+  const getItemLayout = useCallback(
+    (_a: JsonEmoji[] | null | undefined, index: number) => ({
+      length: emojiSize ? emojiSize : 0,
+      offset: emojiSize * Math.ceil(index / numberOfColumns),
+      index,
+    }),
+    [emojiSize, numberOfColumns]
+  )
 
   const handleEmojiPress = React.useCallback(
     (emoji: JsonEmoji) => {
@@ -60,13 +65,14 @@ export const EmojiCategory = ({ item: { title, data } }: { item: EmojisByCategor
     ),
     [emojiSize, handleEmojiPress]
   )
-
+  const keyExtractor = useCallback((item) => item.name, [])
+  const listData = useMemo(() => [...data, ...empty], [data, empty])
   return (
     <View style={[styles.container, { width: width }]}>
       {!hideHeader && <Text style={[styles.sectionTitle, headerStyles]}>{translation[title]}</Text>}
       <FlatList
-        data={[...data, ...empty]}
-        keyExtractor={(emoji) => emoji.name}
+        data={listData}
+        keyExtractor={keyExtractor}
         numColumns={numberOfColumns}
         renderItem={renderItem}
         removeClippedSubviews={true}
@@ -78,7 +84,7 @@ export const EmojiCategory = ({ item: { title, data } }: { item: EmojisByCategor
       />
     </View>
   )
-}
+}, _.isEqual)
 
 const styles = StyleSheet.create({
   container: {

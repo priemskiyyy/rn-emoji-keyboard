@@ -2,6 +2,12 @@ import { CATEGORIES, CategoryTypes, JsonEmoji } from './types'
 
 export const getHeight = (value: string | number, screenHeight: number) =>
   typeof value === 'number' ? value : (screenHeight / 100) * parseInt(value.replace('%', ''), 10)
+export const getHeightWorklet = (value: string | number, screenHeight: number) => {
+  'worklet'
+  return typeof value === 'number'
+    ? value
+    : (screenHeight / 100) * parseInt(value.replace('%', ''), 10)
+}
 
 export const exhaustiveTypeCheck = (arg: never, strict = true) => {
   console.log(`unhandled union case for : ${arg}`)

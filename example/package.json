@@ -2,6 +2,7 @@
   "name": "rn-emoji-keyboard-example",
   "description": "Example app for rn-emoji-keyboard",
   "version": "0.0.1",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -16,7 +17,6 @@
     "react-native": "0.63.4",
     "react-native-gesture-handler": "^1.10.3",
     "react-native-reanimated": "^2.2.0",
-    "react-native-safe-area-context": "^3.2.0",
     "react-native-screens": "^3.4.0",
     "react-native-svg": "^12.1.1"
   },

@@ -2,6 +2,7 @@ import * as React from 'react'
 import { View, StyleSheet, TextInput, TouchableOpacity } from 'react-native'
 import { KeyboardContext } from '../contexts/KeyboardContext'
 import { Icon } from './Icon'
+import { useCallback } from 'react'
 
 export const SearchBar = () => {
   const {
@@ -16,13 +17,15 @@ export const SearchBar = () => {
     renderList,
   } = React.useContext(KeyboardContext)
   const inputRef = React.useRef<TextInput>(null)
-
-  const handleSearch = (text: string) => {
-    setSearchPhrase(text)
-    if (text === '') return setActiveCategoryIndex(0)
-    const searchIndex = renderList.findIndex((cat) => cat.title === 'search')
-    if (searchIndex !== -1) setActiveCategoryIndex(searchIndex)
-  }
+  const handleSearch = useCallback(
+    (text: string) => {
+      setSearchPhrase(text)
+      if (text === '') return setActiveCategoryIndex(0)
+      const searchIndex = renderList.findIndex((cat) => cat.title === 'search')
+      if (searchIndex !== -1) setActiveCategoryIndex(searchIndex)
+    },
+    [renderList, setActiveCategoryIndex, setSearchPhrase]
+  )
   const clearPhrase = () => {
     setSearchPhrase('')
     inputRef.current?.blur()

@@ -22,7 +22,7 @@ export const defaultKeyboardContext: Required<KeyboardProps> = {
   headerStyles: {},
   expandable: true,
   hideHeader: false,
-  defaultHeight: '40%',
+  defaultHeight: '50%',
   expandedHeight: '80%',
   backdropColor: '#00000055',
   categoryColor: '#000000',
@@ -44,7 +44,7 @@ export const defaultKeyboardContext: Required<KeyboardProps> = {
   categoryOrder: [...CATEGORIES],
   onRequestClose: () => {},
   categoryContainerStyles: {},
-  disableSafeArea: false,
+  disableSafeArea: true,
 }
 
 export const defaultKeyboardValues: ContextValues = {
@@ -90,7 +90,6 @@ export const KeyboardProvider: React.FC<ProviderProps> = React.memo((props) => {
           .map((group) => group.data)
           .flat()
           .filter((emoji) => {
-            if (searchPhrase.length < 2) return false
             return (
               emoji.name.toLowerCase().includes(searchPhrase.toLowerCase()) ||
               emoji.emoji.toLowerCase().includes(searchPhrase)

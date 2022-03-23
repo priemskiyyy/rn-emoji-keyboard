@@ -25,6 +25,7 @@ const SearchBar = () => {
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         enableSearchBar
+        defaultHeight={'60%'}
       />
     </SafeAreaView>
   )
