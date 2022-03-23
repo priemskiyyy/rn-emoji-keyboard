@@ -1,10 +1,12 @@
 import * as React from 'react'
-import { Animated, FlatList, StyleSheet, View, ViewStyle } from 'react-native'
+import { FlatList, StyleSheet, View, ViewStyle } from 'react-native'
 import { defaultKeyboardContext } from '../contexts/KeyboardProvider'
 import { KeyboardContext } from '../contexts/KeyboardContext'
 import { CATEGORIES_NAVIGATION, CategoryNavigationItem, CategoryTypes } from '../types'
 import { CategoryItem } from './CategoryItem'
 import { exhaustiveTypeCheck } from '../utils'
+import Reanimated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
+import { useRef } from 'react'
 
 const CATEGORY_ELEMENT_WIDTH = 37
 
@@ -19,7 +21,8 @@ export const Categories = () => {
     setActiveCategoryIndex,
     categoryContainerStyles,
   } = React.useContext(KeyboardContext)
-  const scrollNav = React.useRef(new Animated.Value(0)).current
+  const _scrollNav = useSharedValue(0)
+  const flatlistRef = useRef<FlatList>(null)
   const handleScrollToCategory = React.useCallback(
     (category: CategoryTypes) => {
       setActiveCategoryIndex(renderList.findIndex((cat) => cat.title === category))
@@ -34,27 +37,34 @@ export const Categories = () => {
     [handleScrollToCategory]
   )
   React.useEffect(() => {
-    Animated.spring(scrollNav, {
-      toValue: activeCategoryIndex * CATEGORY_ELEMENT_WIDTH,
-      useNativeDriver: true,
-    }).start()
-  }, [activeCategoryIndex, scrollNav])
+    flatlistRef.current?.scrollToIndex({
+      index: activeCategoryIndex,
+      viewOffset: CATEGORY_ELEMENT_WIDTH * 2,
+      animated: true,
+    })
+    _scrollNav.value = withTiming(activeCategoryIndex * CATEGORY_ELEMENT_WIDTH)
+  }, [_scrollNav, activeCategoryIndex])
 
+  const animatedTranslationStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: _scrollNav.value,
+      },
+    ],
+  }))
   const activeIndicator = React.useCallback(
     () => (
-      <Animated.View
+      <Reanimated.View
         style={[
           styles.activeIndicator,
           {
             backgroundColor: activeCategoryContainerColor,
           },
-          {
-            transform: [{ translateX: scrollNav }],
-          },
+          animatedTranslationStyle,
         ]}
       />
     ),
-    [activeCategoryContainerColor, scrollNav]
+    [activeCategoryContainerColor, animatedTranslationStyle]
   )
 
   const getStylesBasedOnPosition = () => {
@@ -97,6 +107,7 @@ export const Categories = () => {
     <View style={[categoryPosition === 'floating' && styles.floating]}>
       <View style={getStylesBasedOnPosition()}>
         <FlatList
+          ref={flatlistRef}
           data={renderData}
           keyExtractor={(item) => item.category}
           renderItem={renderItem}

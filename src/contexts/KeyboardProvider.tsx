@@ -6,6 +6,7 @@ import emojisByGroup from '../assets/emojis.json'
 import { useKeyboardStore } from '../store/useKeyboardStore'
 import type { EmojiType, CategoryTypes, EmojisByCategory } from '../types'
 import { CATEGORIES } from '../types'
+import { useEffect, useState } from 'react'
 
 type ProviderProps = Partial<KeyboardProps> & {
   children: React.ReactNode
@@ -56,7 +57,15 @@ export const defaultKeyboardValues: ContextValues = {
   setSearchPhrase: (_phrase: string) => {},
   renderList: [],
 }
-
+const fil = <_, K>(fn: (i: K) => boolean, array: K[]) => {
+  const f = [] //final
+  for (let i = 0; i < array.length; i++) {
+    if (fn(array[i])) {
+      f.push(array[i])
+    }
+  }
+  return f
+}
 export const KeyboardProvider: React.FC<ProviderProps> = React.memo((props) => {
   const { width } = useWindowDimensions()
   const [activeCategoryIndex, setActiveCategoryIndex] = React.useState(0)
@@ -71,48 +80,56 @@ export const KeyboardProvider: React.FC<ProviderProps> = React.memo((props) => {
     setSearchPhrase('')
   }, [props.open])
 
-  const renderList = React.useMemo(() => {
-    let data = emojisByGroup.filter((category) => {
-      const title = category.title as CategoryTypes
-      if (props.disabledCategories) return !props.disabledCategories.includes(title)
-      return true
-    })
-    if (keyboardState.recentlyUsed.length && props.enableRecentlyUsed) {
-      data.push({
-        title: 'recently_used' as CategoryTypes,
-        data: keyboardState.recentlyUsed,
+  const [renderList, setRenderList] = useState<EmojisByCategory[]>(
+    emojisByGroup as EmojisByCategory[]
+  )
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      let data = emojisByGroup.filter((category) => {
+        const title = category.title as CategoryTypes
+        if (props.disabledCategories) return !props.disabledCategories.includes(title)
+        return true
       })
-    }
-    if (props.enableSearchBar) {
-      data.push({
-        title: 'search' as CategoryTypes,
-        data: emojisByGroup
-          .map((group) => group.data)
-          .flat()
-          .filter((emoji) => {
-            return (
-              emoji.name.toLowerCase().includes(searchPhrase.toLowerCase()) ||
-              emoji.emoji.toLowerCase().includes(searchPhrase)
-            )
-          }),
-      })
-    }
-    if (props.categoryOrder) {
-      const orderedData = props.categoryOrder.flatMap((name) =>
-        data.filter((el) => el.title === name)
-      )
-      const restData = data.filter(
-        (el) => !props?.categoryOrder?.includes(el.title as CategoryTypes)
-      )
-      data = [...orderedData, ...restData]
-    }
-    return data as EmojisByCategory[]
+      if (keyboardState.recentlyUsed.length && props.enableRecentlyUsed) {
+        data.push({
+          title: 'recently_used' as CategoryTypes,
+          data: keyboardState.recentlyUsed,
+        })
+      }
+      if (props.enableSearchBar && searchPhrase.length > 2) {
+        data = [
+          {
+            title: 'search' as CategoryTypes,
+            data: fil((emoji) => {
+              if (searchPhrase.length < 2) return false
+              return (
+                emoji.name.toLowerCase().includes(searchPhrase.toLowerCase()) ||
+                emoji.emoji.toLowerCase().includes(searchPhrase)
+              )
+            }, emojisByGroup.map((group) => group.data).flat()),
+          },
+          ...data,
+        ]
+      }
+      if (props.categoryOrder) {
+        const orderedData = props.categoryOrder.flatMap((name) =>
+          data.filter((el) => el.title === name)
+        )
+        const restData = data.filter(
+          (el) => !props?.categoryOrder?.includes(el.title as CategoryTypes)
+        )
+        data = [...orderedData, ...restData]
+      }
+      setRenderList(data as EmojisByCategory[])
+    }, 200)
+    return () => clearTimeout(timeout)
   }, [
     keyboardState.recentlyUsed,
-    props.enableRecentlyUsed,
-    props.enableSearchBar,
     props.categoryOrder,
     props.disabledCategories,
+    props.enableRecentlyUsed,
+    props.enableSearchBar,
     searchPhrase,
   ])
 
