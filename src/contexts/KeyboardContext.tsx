@@ -46,6 +46,10 @@ export type KeyboardProps = {
   onRequestClose?: () => void
   categoryContainerStyles?: ViewStyle
   disableSafeArea?: boolean
+  enableSearchBarIcon?: boolean
+  SearchBarIcon?: () => JSX.Element
+  searchBarIconContainerStyle?: ViewStyle
+  searchBarIconOnPress?: () => unknown | Promise<unknown>
 }
 export type ContextValues = {
   activeCategoryIndex: number

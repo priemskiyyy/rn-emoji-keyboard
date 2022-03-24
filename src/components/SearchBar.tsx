@@ -15,6 +15,10 @@ export const SearchBar = () => {
     searchBarTextStyles,
     searchBarPlaceholderColor,
     renderList,
+    enableSearchBarIcon,
+    SearchBarIcon,
+    searchBarIconContainerStyle,
+    searchBarIconOnPress,
   } = React.useContext(KeyboardContext)
   const inputRef = React.useRef<TextInput>(null)
   const handleSearch = useCallback(
@@ -31,9 +35,17 @@ export const SearchBar = () => {
     inputRef.current?.blur()
     setActiveCategoryIndex(0)
   }
-
+  const focus = async () => {
+    inputRef.current?.focus()
+    await searchBarIconOnPress()
+  }
   return (
     <View style={[styles.container, searchBarStyles]}>
+      {enableSearchBarIcon && (
+        <TouchableOpacity onPress={focus} style={[styles.button, searchBarIconContainerStyle]}>
+          <SearchBarIcon />
+        </TouchableOpacity>
+      )}
       <TextInput
         style={[styles.input, searchBarTextStyles]}
         value={searchPhrase}
@@ -60,13 +72,14 @@ const styles = StyleSheet.create({
   container: {
     marginTop: 16,
     marginHorizontal: 16,
-    borderRadius: 100,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#00000011',
     flexDirection: 'row',
     alignItems: 'center',
   },
   input: {
+    height: 34,
     paddingVertical: 8,
     paddingHorizontal: 12,
     flex: 1,

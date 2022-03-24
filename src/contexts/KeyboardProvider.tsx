@@ -7,6 +7,7 @@ import { useKeyboardStore } from '../store/useKeyboardStore'
 import type { EmojiType, CategoryTypes, EmojisByCategory } from '../types'
 import { CATEGORIES } from '../types'
 import { useEffect, useState } from 'react'
+import { Icon } from '../components/Icon'
 
 type ProviderProps = Partial<KeyboardProps> & {
   children: React.ReactNode
@@ -46,6 +47,12 @@ export const defaultKeyboardContext: Required<KeyboardProps> = {
   onRequestClose: () => {},
   categoryContainerStyles: {},
   disableSafeArea: true,
+  enableSearchBarIcon: false,
+  SearchBarIcon: () => (
+    <Icon iconName={'Close'} isActive={true} normalColor={'white'} activeColor={'white'} />
+  ),
+  searchBarIconContainerStyle: {},
+  searchBarIconOnPress: () => {},
 }
 
 export const defaultKeyboardValues: ContextValues = {
@@ -97,12 +104,12 @@ export const KeyboardProvider: React.FC<ProviderProps> = React.memo((props) => {
           data: keyboardState.recentlyUsed,
         })
       }
-      if (props.enableSearchBar && searchPhrase.length > 2) {
+      if (props.enableSearchBar && searchPhrase.length > 1) {
         data = [
           {
             title: 'search' as CategoryTypes,
             data: fil((emoji) => {
-              if (searchPhrase.length < 2) return false
+              if (searchPhrase.length < 1) return false
               return (
                 emoji.name.toLowerCase().includes(searchPhrase.toLowerCase()) ||
                 emoji.emoji.toLowerCase().includes(searchPhrase)
